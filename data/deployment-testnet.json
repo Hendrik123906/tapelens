@@ -1,0 +1,9 @@
+{
+  "network": "X Layer testnet",
+  "chainId": 1952,
+  "contract": "TapeLensVerifier",
+  "address": "0x1f3d1411b0B488BFBb5B7C6B3C0920785f34115A",
+  "deployTx": "0xca2f3cc10693d3dd5a5a75756d31125f92d9326d8ada4854febb06642ea0ae2d",
+  "deployer": "0xAbDc8e5cB981366ac0f0dE554A1e1083393CAfDC",
+  "deployedAt": "2026-11-12T10:48:15.228Z"
+}

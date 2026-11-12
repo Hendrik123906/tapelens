@@ -41,7 +41,7 @@ Freemium developer tool. Free: verification of standard templates + read-only ch
 - Repo: https://github.com/Hendrik123906/tapelens
 - TapeOut factory (X Layer): `0x1f09daefa827f02cbb40967cc91b259763760761`
 - $BEM (X Layer): `0x60e62efa9405d6873c5deabd4e6cc91c25363952`
-- TapeLensVerifier contract: [⏳ X Layer testnet address after `scripts/deploy.js` — add here; until then state "tested locally, testnet deploy pending"]
+- TapeLensVerifier contract (DEPLOYED 12 Nov 2026, X Layer testnet chain 1952): `0x1f3d1411b0B488BFBb5B7C6B3C0920785f34115A`, deploy tx `0xca2f3cc10693d3dd5a5a75756d31125f92d9326d8ada4854febb06642ea0ae2d` (verified on-chain: 5,345 bytes of code; deployer throwaway wallet, 0.2 test OKB from OKX faucet, gas ~0.000024 OKB). 24/24 Hardhat tests passing locally.
 - Demo video (≤3 min, recommended): https://github.com/Hendrik123906/tapelens/raw/main/demo/tapelens-demo.mp4 (2:39, screen-record demo asli, direkam 12 Nov 2026; kalau di-upload ke YouTube Public, ganti link ini dengan link YouTube)
 
 ## What was built during the event (all new, Nov 2026)

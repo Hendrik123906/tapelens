@@ -1,4 +1,4 @@
-// Deploy TapeLensVerifier to X Layer TESTNET (chain 195) — free test OKB only.
+// Deploy TapeLensVerifier to X Layer TESTNET (chain 1952) — free test OKB only.
 // Requires env TAPEOUT_TESTNET_KEY = throwaway testnet-only private key.
 // NEVER use a real wallet key here. Never deploys to mainnet.
 const { ethers } = require("hardhat");
@@ -24,7 +24,7 @@ async function main() {
   const address = await verifier.getAddress();
   console.log("TapeLensVerifier deployed to X Layer testnet:", address);
   const tx = verifier.deploymentTransaction();
-  const rec = { network: "X Layer testnet", chainId: 195, contract: "TapeLensVerifier", address, deployTx: tx ? tx.hash : null, deployer: deployer.address, deployedAt: new Date().toISOString() };
+  const rec = { network: "X Layer testnet", chainId: 1952, contract: "TapeLensVerifier", address, deployTx: tx ? tx.hash : null, deployer: deployer.address, deployedAt: new Date().toISOString() };
   fs.writeFileSync(path.join(__dirname, "..", "data", "deployment-testnet.json"), JSON.stringify(rec, null, 2));
   console.log("Wrote data/deployment-testnet.json");
 }

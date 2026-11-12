@@ -26,7 +26,7 @@ Repo RozgarAI TIDAK disentuh.
 
 ## Catatan jujur untuk submission
 
-- Yang diklaim HANYA yang terverifikasi di atas. Alamat kontrak TapeLensVerifier BELUM ADA (belum deploy) — di form ditulis apa adanya ("tested locally, testnet deploy pending"). TIDAK ada pernyataan palsu.
+- Yang diklaim HANYA yang terverifikasi di atas. ✅ TapeLensVerifier SUDAH DEPLOY di X Layer testnet 12 Nov 2026 ~17:48 WIB: `0x1f3d1411b0B488BFBb5B7C6B3C0920785f34115A`, tx `0xca2f3cc10693d3dd5a5a75756d31125f92d9326d8ada4854febb06642ea0ae2d` (kode 5.345 byte terverifikasi on-chain via testrpc.xlayer.tech). TIDAK ada pernyataan palsu.
 - Proyek 100% baru, dibuat selama event (Nov 2026) — memenuhi syarat "substantial new development".
 - Solo, 18+ (user lahir 7 Des 1997), email bambanghendri71@gmail.com.
 
