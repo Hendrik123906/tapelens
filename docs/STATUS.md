@@ -29,3 +29,10 @@ Repo RozgarAI TIDAK disentuh.
 - Yang diklaim HANYA yang terverifikasi di atas. Alamat kontrak TapeLensVerifier BELUM ADA (belum deploy) — di form ditulis apa adanya ("tested locally, testnet deploy pending"). TIDAK ada pernyataan palsu.
 - Proyek 100% baru, dibuat selama event (Nov 2026) — memenuhi syarat "substantial new development".
 - Solo, 18+ (user lahir 7 Des 1997), email bambanghendri71@gmail.com.
+
+## ✅ Repo lokal SIAP PUSH (12 Nov 2026 ~14:05 WIB)
+
+- Git init + commit `4f8e844` (19 file; node_modules/artifacts/cache ter-exclude; tree terverifikasi bebas secret/key; 24/24 Hardhat test lolos ulang saat commit).
+- ⛔ Push TERBLOKIR: token `gh` (fine-grained PAT) tidak punya izin `createRepository` → repo `Hendrik123906/tapelens` tidak bisa dibuat dari VM. Butuh: user buat repo kosong `tapelens` (public) di github.com, ATAU tambah izin repo ke PAT / `gh auth refresh -s repo`. Setelah repo ada: `git remote add origin https://github.com/Hendrik123906/tapelens.git && git push -u origin main`.
+- ⛔ Hosting TERBLOKIR: Vercel belum login (`vercel status` → `not_connected`, tidak ada token di config). Butuh user login Vercel (authorize URL) — jangan buat akun baru tanpa user. Setelah login: deploy `frontend/index.html` → `vercel deploy --prod`, isi URL demo ke `docs/SUBMISSION.md`.
+- Placeholder [⏳] di `docs/SUBMISSION.md` (URL repo + URL demo) MASIH kosong — diisi setelah kedua blocker di atas teratasi. Jangan isi URL tebakan.
