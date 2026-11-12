@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TapeLens — Circuit Verifier for TapeOut on X Layer</title>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --line:#30363d; --txt:#e6edf3; --dim:#8b949e; --acc:#58a6ff; --ok:#3fb950; --warn:#d29922; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--txt); font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif; line-height:1.5; }
+  main { max-width:860px; margin:0 auto; padding:20px 16px 60px; }
+  h1 { font-size:26px; margin:8px 0 4px; }
+  h2 { font-size:19px; margin:28px 0 8px; border-bottom:1px solid var(--line); padding-bottom:6px; }
+  h3 { font-size:15px; margin:16px 0 6px; }
+  p, li { font-size:14.5px; }
+  .sub { color:var(--dim); margin:0 0 12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; margin:12px 0; }
+  .row { display:flex; flex-wrap:wrap; gap:8px; }
+  button { background:#21262d; color:var(--txt); border:1px solid var(--line); border-radius:8px; padding:9px 14px; font-size:14px; cursor:pointer; }
+  button:hover { border-color:var(--acc); }
+  button.active { background:var(--acc); border-color:var(--acc); color:#fff; }
+  button.primary { background:#1f6feb; border-color:#1f6feb; color:#fff; }
+  code, .mono { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:12.5px; word-break:break-all; }
+  table { border-collapse:collapse; width:100%; font-size:13px; margin:8px 0; }
+  th, td { border:1px solid var(--line); padding:5px 8px; text-align:left; }
+  th { background:#21262d; }
+  .ok { color:var(--ok); font-weight:700; }
+  .warn { color:var(--warn); font-weight:700; }
+  .dim { color:var(--dim); }
+  a { color:var(--acc); }
+  .pill { display:inline-block; padding:2px 9px; border-radius:20px; font-size:12px; border:1px solid var(--line); }
+  .pill.ok { color:var(--ok); border-color:var(--ok); }
+  .pill.warn { color:var(--warn); border-color:var(--warn); }
+  .latch { font-size:34px; font-weight:800; }
+  .small { font-size:12.5px; color:var(--dim); }
+  pre { background:#0d1117; border:1px solid var(--line); border-radius:8px; padding:10px; overflow-x:auto; font-size:12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>🔍 TapeLens</h1>
+  <p class="sub"><b>Circuit Verifier for TapeOut on X Layer.</b> A TapeOut circuit is a netlist of NAND gates (+ LATCH cells) sold as a Circuit NFT — but buyers and PoD miners can't see what logic it actually implements. TapeLens proves it: it re-evaluates any NAND netlist for <b>every</b> input combination and checks it against the claimed truth table, on-chain.</p>
+
+  <div class="card" id="statusBox">
+    <b>Project status (honest):</b>
+    <ul style="margin:6px 0 0; padding-left:20px;">
+      <li>Smart contract <code>TapeLensVerifier.sol</code> — written, compiled, <b>24/24 Hardhat tests passing</b> on a local chain.</li>
+      <li>X Layer on-chain data — <b>read live</b> (factory, processors, $BEM). See snapshot below.</li>
+      <li>On-chain deploy — <span id="deployStatus">not deployed yet (needs free testnet OKB from the OKX faucet — no real funds).</span></li>
+      <li>Video demo ≤ 3 min — script ready, not recorded yet (video is recommended, not required).</li>
+    </ul>
+  </div>
+
+  <h2>1 · Pick a circuit, verify it in your browser</h2>
+  <p>Four classic templates — the same netlists the on-chain verifier checks. Simulation runs 100% locally in this page; no wallet, no server.</p>
+  <div class="row" id="templateBtns"></div>
+  <div class="card">
+    <h3 id="tplName" style="margin-top:0;"></h3>
+    <p id="tplDesc" class="sub"></p>
+    <p><span id="tplMeta"></span></p>
+    <h3>NAND netlist (gates in evaluation order)</h3>
+    <div style="overflow-x:auto;"><table id="gateTable"><thead><tr><th>Gate</th><th>Operation</th><th>Inputs (node ids)</th><th>Output node</th></tr></thead><tbody></tbody></table></div>
+    <h3>Truth table — simulated vs claimed</h3>
+    <div style="overflow-x:auto;"><table id="truthTable"><thead></thead><tbody></tbody></table></div>
+    <p id="matchLine"></p>
+    <h3>Netlist hash (keccak256 of the canonical encoding)</h3>
+    <p class="mono" id="hashLine">computing…</p>
+    <p class="small">The hash is what the contract records when verification succeeds. Recompute it anywhere with <code>keccak256(encodePacked(nInputs, nOutputs, gates, outputNodes))</code> — see <code>simulator/netlist.js</code> in the repo.</p>
+  </div>
+
+  <h2>2 · TapeOut on X Layer — live data (read-only)</h2>
+  <div class="card">
+    <p id="snapshotLine" class="small"></p>
+    <table id="xlayerTable"><thead><tr><th>Item</th><th>Value</th></tr></thead><tbody></tbody></table>
+    <p><button id="refreshLive" class="primary">↻ Refresh live from X Layer RPC</button> <span id="liveMsg" class="small"></span></p>
+    <p class="small">Reads only — <code>eth_call</code> against the public OKX RPC (<code>https://rpc.xlayer.tech</code>). No wallet connection, no signing, no funds. If the live refresh is blocked (e.g. CORS), the snapshot above is the last verified read.</p>
+    <p class="small">Sources: TapeOut factory <a id="factoryLink" href="#" target="_blank" rel="noopener">OKLink ↗</a> · $BEM on X Layer <a id="bemLink" href="#" target="_blank" rel="noopener">OKLink ↗</a></p>
+  </div>
+
+  <h2>3 · Verify on-chain (TapeLensVerifier)</h2>
+  <div class="card">
+    <p>Contract: <code>TapeLensVerifier.sol</code> — pure verification logic. No owner, no funds, no token, no upgradeability.</p>
+    <p>Deployed address: <code id="contractAddr">not deployed yet</code></p>
+    <p>Call for the selected template (after deploy):</p>
+    <pre id="calldataBox">select a template above…</pre>
+    <p class="small">Anyone can call <code>verify(netlistHash, gates, nInputs, outputNodes, expectedTruthTable)</code>. On success it emits <code>CircuitVerified</code> and records <code>verified[netlistHash] = true</code> — checkable with one read call.</p>
+  </div>
+
+  <h2>4 · LATCH demo — memory from NAND gates (off-chain only)</h2>
+  <div class="card">
+    <p>TapeOut's second primitive is the LATCH — a memory cell. This SR latch is two cross-coupled NAND gates. Sequential logic needs clock steps, so the on-chain verifier covers combinational circuits only; the latch is simulated here.</p>
+    <p>
+      <button id="btnSet">SET (S=0, R=1)</button>
+      <button id="btnReset">RESET (S=1, R=0)</button>
+      <button id="btnHold">HOLD (S=1, R=1)</button>
+    </p>
+    <p>Q = <span class="latch" id="qVal">1</span> &nbsp;·&nbsp; Q̄ = <span class="latch" id="qbVal">0</span> &nbsp; <span class="dim" id="latchNote">initial state</span></p>
+  </div>
+
+  <h2>About &amp; links</h2>
+  <div class="card">
+    <ul>
+      <li>Hackathon: <a href="https://web3.okx.com/xlayer/build-x-series" target="_blank" rel="noopener">X Layer TapeOut Accelerate — OKX Web3</a> (100,000 USDT; deadline 7 Dec 2026 23:59 UTC)</li>
+      <li>TapeOut official: <a href="https://tapeout.net/" target="_blank" rel="noopener">tapeout.net</a> · independent data terminal: <a href="https://tapeout.work/" target="_blank" rel="noopener">tapeout.work</a></li>
+      <li>Repo: see <code>README.md</code> in the project folder (contract, simulator, tests, deploy scripts).</li>
+    </ul>
+    <p class="small">TapeLens is an independent developer tool. It is not affiliated with TapeOut, X Layer, or OKX. It never asks for a seed phrase or private key, never holds funds, and the demo never moves money.</p>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<script>
+/*__NETLIST_JS__*/
+</script>
+<script>
+(function () {
+  'use strict';
+  var SNAPSHOT = /*__SNAPSHOT_JSON__*/ null;
+  var DEPLOY = /*__DEPLOY_JSON__*/ null;
+  var FACTORY = '0x1f09daefa827f02cbb40967cc91b259763760761';
+  var BEM = '0x60e62efa9405d6873c5deabd4e6cc91c25363952';
+  var RPC = 'https://rpc.xlayer.tech';
+
+  var $ = function (id) { return document.getElementById(id); };
+  var current = null;
+
+  function nodeLabel(id, nInputs) {
+    return id < nInputs ? 'in[' + id + ']' : 'g' + (id - nInputs);
+  }
+
+  function renderTemplate(t) {
+    current = t;
+    var built = t.build();
+    var gates = built.gates, outputs = built.outputs;
+    $('tplName').textContent = t.name;
+    $('tplDesc').textContent = t.description;
+    $('tplMeta').innerHTML = gates.length + ' NAND gates · ' + t.nInputs + ' inputs (' + t.inputNames.join(', ') + ') · ' + outputs.length + ' outputs (' + t.outputNames.join(', ') + ')';
+    var tb = document.querySelector('#gateTable tbody');
+    tb.innerHTML = '';
+    gates.forEach(function (g, i) {
+      var tr = document.createElement('tr');
+      var isOut = outputs.indexOf(t.nInputs + i) !== -1;
+      tr.innerHTML = '<td>g' + i + '</td><td>NAND</td><td>' + nodeLabel(g.a, t.nInputs) + ' , ' + nodeLabel(g.b, t.nInputs) + '</td><td>' + nodeLabel(t.nInputs + i, t.nInputs) + (isOut ? ' ★ output: ' + t.outputNames[outputs.indexOf(t.nInputs + i)] : '') + '</td>';
+      tb.appendChild(tr);
+    });
+    // truth table
+    var expected = [], simulated = TapeLens.evaluate(gates, t.nInputs, outputs);
+    for (var k = 0; k < (1 << t.nInputs); k++) expected.push(t.reference(k));
+    var thead = document.querySelector('#truthTable thead');
+    var h = '<tr>';
+    t.inputNames.forEach(function (n) { h += '<th>' + n + '</th>'; });
+    t.outputNames.forEach(function (n) { h += '<th>' + n + ' ✓</th>'; });
+    h += '<th>Match</th></tr>';
+    thead.innerHTML = h;
+    var tbody = document.querySelector('#truthTable tbody');
+    tbody.innerHTML = '';
+    var allMatch = true;
+    for (var k = 0; k < (1 << t.nInputs); k++) {
+      var ok = simulated[k] === expected[k];
+      if (!ok) allMatch = false;
+      var tr = document.createElement('tr');
+      var cells = '';
+      for (var i = 0; i < t.nInputs; i++) cells += '<td>' + ((k >> i) & 1) + '</td>';
+      for (var o = 0; o < outputs.length; o++) cells += '<td>' + ((simulated[k] >> o) & 1) + '</td>';
+      cells += '<td>' + (ok ? '✓' : '✗ MISMATCH') + '</td>';
+      tr.innerHTML = cells;
+      tbody.appendChild(tr);
+    }
+    $('matchLine').innerHTML = allMatch
+      ? '<span class="ok">✓ All ' + (1 << t.nInputs) + ' input combinations match the claimed truth table.</span>'
+      : '<span class="warn">✗ MISMATCH — this netlist does NOT implement the claimed function.</span>';
+    // hash
+    var enc = TapeLens.canonicalEncodingHex(gates, t.nInputs, outputs);
+    var hashLine = $('hashLine');
+    try {
+      if (window.ethers && ethers.keccak256) {
+        var hash = ethers.keccak256(enc);
+        hashLine.textContent = hash;
+        renderCalldata(t, gates, outputs, expected, hash);
+      } else { throw new Error('ethers lib not loaded'); }
+    } catch (e) {
+      hashLine.textContent = 'Could not compute here (ethers CDN unreachable). Canonical encoding: ' + enc + ' — hash it with keccak256.';
+      renderCalldata(t, gates, outputs, expected, null);
+    }
+  }
+
+  function renderCalldata(t, gates, outputs, expected, hash) {
+    var box = $('calldataBox');
+    var expHex = '0x' + expected.map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+    if (!hash) { box.textContent = 'verify(netlistHash=?, gates=' + JSON.stringify(gates) + ', nInputs=' + t.nInputs + ', outputNodes=' + JSON.stringify(outputs) + ', expected=' + expHex + ')'; return; }
+    try {
+      var abi = ['function verify(bytes32 netlistHash, tuple(uint16 a, uint16 b)[] gates, uint8 nInputs, uint16[] outputNodes, bytes expected) returns (bool)'];
+      var iface = new ethers.Interface(abi);
+      var data = iface.encodeFunctionData('verify', [hash, gates.map(function (g) { return [g.a, g.b]; }), t.nInputs, outputs, expHex]);
+      box.textContent = 'to: ' + (DEPLOY ? DEPLOY.address : '(contract address after testnet deploy)') + '\nverify(' + hash + ', ' + gates.length + ' gates, nInputs=' + t.nInputs + ', outputs=' + JSON.stringify(outputs) + ', expected=' + expHex + ')\n\ncalldata:\n' + data;
+    } catch (e) {
+      box.textContent = 'verify(' + hash + ', gates, nInputs=' + t.nInputs + ', outputNodes=' + JSON.stringify(outputs) + ', expected=' + expHex + ')';
+    }
+  }
+
+  // template buttons
+  var btns = $('templateBtns');
+  TapeLens.TEMPLATES.forEach(function (t, i) {
+    var b = document.createElement('button');
+    b.textContent = t.name;
+    b.onclick = function () {
+      Array.prototype.forEach.call(btns.children, function (x) { x.classList.remove('active'); });
+      b.classList.add('active');
+      renderTemplate(t);
+    };
+    btns.appendChild(b);
+    if (i === 1) { b.classList.add('active'); setTimeout(function(){ renderTemplate(t); }, 0); }
+  });
+
+  // snapshot panel
+  function renderSnapshot(s) {
+    if (!s) {
+      $('snapshotLine').textContent = 'No verified snapshot available yet — run node scripts/readXLayer.js.';
+      return;
+    }
+    $('snapshotLine').textContent = 'Last verified read: ' + s.readAt + ' · block #' + s.blockNumber + ' · chain id ' + s.networkChainId;
+    var rows = [
+      ['TapeOut factory (X Layer)', s.factory.address + ' — code on chain: ' + (s.factory.hasCode ? 'yes' : 'NO') + ' · processors: ' + s.factory.processorCount],
+      ['BEM on X Layer', s.bemXLayer.address + ' — ' + s.bemXLayer.name + ' (' + s.bemXLayer.symbol + '), decimals ' + s.bemXLayer.decimals + ', totalSupply ' + (Number(s.bemXLayer.totalSupplyRaw) / Math.pow(10, s.bemXLayer.decimals)).toLocaleString() + ' BEM'],
+      ['Rig voucher (X Layer)', s.rigVoucher.address + ' — totalSupply ' + s.rigVoucher.totalSupplyRaw],
+    ];
+    s.processors.forEach(function (p) {
+      rows.push(['Processor #' + p.index, p.address + ' — next circuit id: ' + p.nextCircuitId]);
+    });
+    var tb = document.querySelector('#xlayerTable tbody');
+    tb.innerHTML = '';
+    rows.forEach(function (r) {
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + r[0] + '</td><td class="mono">' + r[1] + '</td>';
+      tb.appendChild(tr);
+    });
+  }
+  renderSnapshot(SNAPSHOT);
+  $('factoryLink').href = 'https://www.oklink.com/xlayer/address/' + FACTORY;
+  $('bemLink').href = 'https://www.oklink.com/xlayer/address/' + BEM;
+
+  if (DEPLOY) {
+    $('deployStatus').innerHTML = 'deployed on <b>X Layer testnet (chain 195)</b>: <code>' + DEPLOY.address + '</code> (' + DEPLOY.deployedAt + ').';
+    $('contractAddr').textContent = DEPLOY.address + ' (X Layer testnet, chain 195)';
+  }
+
+  // live refresh (best effort; falls back to snapshot)
+  $('refreshLive').onclick = function () {
+    $('liveMsg').textContent = 'reading…';
+    function rpcCall(method, params) {
+      return fetch(RPC, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: method, params: params }) })
+        .then(function (r) { return r.json(); }).then(function (j) { if (j.error) throw new Error(j.error.message); return j.result; });
+    }
+    function selector(sig) {
+      // Proper 4-byte selector = first 4 bytes of keccak256(signature).
+      if (window.ethers && ethers.id) return ethers.id(sig).slice(0, 10);
+      var known = { 'totalSupply()': '0x18160ddd' }; // well-known ERC-20 selector
+      if (!known[sig]) throw new Error('ethers lib missing, cannot compute selector for ' + sig);
+      return known[sig];
+    }
+    Promise.all([
+      rpcCall('eth_call', [{ to: FACTORY, data: selector('cpuCount()') }, 'latest']),
+      rpcCall('eth_call', [{ to: BEM, data: selector('totalSupply()') }, 'latest']),
+      rpcCall('eth_blockNumber', [])
+    ]).then(function (res) {
+      var cpuCount = parseInt(res[0], 16);
+      var bemSupply = parseInt(res[1], 16) / 1e8;
+      var block = parseInt(res[2], 16);
+      $('liveMsg').innerHTML = '<span class="ok">✓ Live:</span> block #' + block + ' · factory processors: ' + cpuCount + ' · BEM supply: ' + bemSupply.toLocaleString() + ' BEM';
+    }).catch(function (e) {
+      $('liveMsg').textContent = 'Live refresh failed (' + (e && e.message ? e.message : e) + '). Snapshot above is the last verified read.';
+    });
+  };
+
+  // SR latch demo
+  var latch = { q: 1, qb: 0 };
+  function paintLatch(note) {
+    $('qVal').textContent = latch.q;
+    $('qbVal').textContent = latch.qb;
+    $('latchNote').textContent = note;
+  }
+  $('btnSet').onclick = function () { latch = TapeLens.srLatchStep(latch, 0, 1); paintLatch('SET: S=0, R=1 → Q=1 (stores a 1)'); };
+  $('btnReset').onclick = function () { latch = TapeLens.srLatchStep(latch, 1, 0); paintLatch('RESET: S=1, R=0 → Q=0 (stores a 0)'); };
+  $('btnHold').onclick = function () { latch = TapeLens.srLatchStep(latch, 1, 1); paintLatch('HOLD: S=1, R=1 → Q keeps its value (memory!)'); };
+})();
+</script>
+</body>
+</html>

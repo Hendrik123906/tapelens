@@ -1,0 +1,52 @@
+{
+  "rpc": "https://rpc.xlayer.tech",
+  "chain": "X Layer",
+  "chainId": 196,
+  "readAt": "2026-11-12T06:23:39.783Z",
+  "networkChainId": 196,
+  "blockNumber": 75695624,
+  "factory": {
+    "address": "0x1f09daefa827f02cbb40967cc91b259763760761",
+    "hasCode": true,
+    "codeLength": 130,
+    "processorCount": 416
+  },
+  "processors": [
+    {
+      "index": 0,
+      "address": "0x839bdD6fa7A66416A609A735e11DE5411B98574e",
+      "nextCircuitId": 103
+    },
+    {
+      "index": 1,
+      "address": "0x0565EA48CA41Ae559d8d491dbb0a9ec945DB551b",
+      "nextCircuitId": 100
+    },
+    {
+      "index": 2,
+      "address": "0xE0EF4FffD869cBD24b2F83E6d2d83109937E05ff",
+      "nextCircuitId": 25
+    },
+    {
+      "index": 3,
+      "address": "0x006B107B889347dEDd52019Fae9daa60fCe47947",
+      "nextCircuitId": 9
+    },
+    {
+      "index": 4,
+      "address": "0x68f65046fDEab90d8dB376C27B5E6AE159d240cc",
+      "nextCircuitId": 11
+    }
+  ],
+  "bemXLayer": {
+    "address": "0x60e62efa9405d6873c5deabd4e6cc91c25363952",
+    "name": "BEM",
+    "symbol": "BEM",
+    "decimals": 8,
+    "totalSupplyRaw": "1509034488200"
+  },
+  "rigVoucher": {
+    "address": "0x9cfc959cd42b2e1d39a0d850c528210e818ae520",
+    "totalSupplyRaw": "15"
+  }
+}
