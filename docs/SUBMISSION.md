@@ -38,7 +38,7 @@ Freemium developer tool. Free: verification of standard templates + read-only ch
 ## Links & addresses
 
 - Demo (static site, open in browser): `frontend/index.html` in the repo [⏳ PUBLIC LINK: publish the repo + host the file, or deploy via Vercel/Netlify — add URL here before submitting]
-- Repo: [⏳ ADD PUBLIC GITHUB URL before submitting]
+- Repo: https://github.com/Hendrik123906/tapelens
 - TapeOut factory (X Layer): `0x1f09daefa827f02cbb40967cc91b259763760761`
 - $BEM (X Layer): `0x60e62efa9405d6873c5deabd4e6cc91c25363952`
 - TapeLensVerifier contract: [⏳ X Layer testnet address after `scripts/deploy.js` — add here; until then state "tested locally, testnet deploy pending"]
